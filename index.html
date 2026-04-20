@@ -333,52 +333,48 @@
             }
         };
 
-        // --- AQUI ESTÃO AS NOVAS OPÇÕES SENSORIAIS ---
+        // ===== NOVAS DESCRIÇÕES SENSORIAIS (Com os títulos originais) =====
         function getDynamicQuestion(index) {
             const isMim = quizContext.target === 'mim';
             
             if (index === 0) {
                 return {
-                    id: 'target',
-                    text: 'Para quem estamos buscando a fragrância ideal hoje?',
+                    id: 'target', text: 'Para quem estamos buscando a fragrância ideal hoje?',
                     options: [
-                        { text: 'Para mim (Feminino)', desc: 'Quero descobrir minha assinatura olfativa.', value: 'mim_feminino', icon: 'ph-person' },
-                        { text: 'Para mim (Masculino)', desc: 'Quero descobrir minha assinatura olfativa.', value: 'mim_masculino', icon: 'ph-person' },
-                        { text: 'Presentear (Feminino)', desc: 'Vou surpreender alguém especial.', value: 'presente_feminino', icon: 'ph-gift' },
-                        { text: 'Presentear (Masculino)', desc: 'Vou surpreender alguém especial.', value: 'presente_masculino', icon: 'ph-gift' }
+                        { text: 'Para mim (Feminino)', desc: 'Vamos encontrar a sua assinatura olfativa.', value: 'mim_feminino', icon: 'ph-person' },
+                        { text: 'Para mim (Masculino)', desc: 'Vamos encontrar a sua assinatura olfativa.', value: 'mim_masculino', icon: 'ph-person' },
+                        { text: 'Presentear (Feminino)', desc: 'Vamos criar um momento inesquecível para ela.', value: 'presente_feminino', icon: 'ph-gift' },
+                        { text: 'Presentear (Masculino)', desc: 'Vamos criar um momento inesquecível para ele.', value: 'presente_masculino', icon: 'ph-gift' }
                     ]
                 };
             } else if (index === 1) {
                 return {
-                    id: 'vibe',
-                    text: isMim ? 'Qual essência combina mais com o que você deseja transmitir?' : `Qual energia e vibe combina mais com a personalidade ${quizContext.pronoun}?`,
+                    id: 'vibe', text: isMim ? 'Qual essência combina mais com o que você deseja transmitir?' : `Qual energia e vibe combina mais com a personalidade ${quizContext.pronoun}?`,
                     options: [
-                        { text: 'Elegância & Poder', desc: isMim ? 'Deixar um rastro marcante de sofisticação por onde eu passar.' : 'Para deixar um rastro marcante de luxo e sofisticação.', value: 'elegante', icon: 'ph-crown' },
-                        { text: 'Sedução & Mistério', desc: isMim ? 'Despertar o desejo com um aroma envolvente e irresistível.' : 'Um aroma envolvente, hipnótico e cheio de intenções.', value: 'sedutor', icon: 'ph-fire' },
-                        { text: 'Vibração & Energia', desc: isMim ? 'Transmitir alto astral, frescor e muita vitalidade.' : 'Para combinar com um alto astral contagiante.', value: 'vibrante', icon: 'ph-lightning' },
-                        { text: 'Conforto & Bem-estar', desc: isMim ? 'Sentir o aconchego e a leveza de um abraço perfumado.' : 'Aconchego, leveza e aquela sensação boa de abraço.', value: 'confortavel', icon: 'ph-leaf' }
+                        { text: 'Elegância & Poder (Sofisticado)', desc: 'Sinta a confiança de quem domina o ambiente com um rastro de puro luxo e sucesso.', value: 'elegante', icon: 'ph-crown' },
+                        { text: 'Sedução & Mistério (Envolvente)', desc: 'Desperte desejos. Uma sensação quente, hipnótica e totalmente irresistível na pele.', value: 'sedutor', icon: 'ph-fire' },
+                        { text: 'Vibração & Energia (Descontraído)', desc: 'Puro alto astral! Sinta o frescor revigorante que ilumina e contagia o seu dia.', value: 'vibrante', icon: 'ph-lightning' },
+                        { text: 'Conforto & Bem-estar (Leveza)', desc: 'Aconchego puro. A deliciosa e relaxante sensação de um abraço que dura o dia todo.', value: 'confortavel', icon: 'ph-leaf' }
                     ]
                 };
             } else if (index === 2) {
                 return {
-                    id: 'family',
-                    text: isMim ? 'E que tipo de notas olfativas são mais a sua cara?' : `Qual tipo de notas olfativas costuma ganhar o coração ${quizContext.pronoun}?`,
+                    id: 'family', text: isMim ? 'E que tipo de notas olfativas são mais a sua cara?' : `Qual tipo de notas olfativas costuma ganhar o coração ${quizContext.pronoun}?`,
                     options: [
-                        { text: 'Adocicado', desc: 'Notas quentes, cremosas e de dar água na boca (ex: baunilha).', value: 'adocicado', icon: 'ph-cake' },
-                        { text: 'Fresco', desc: 'Aquela sensação deliciosa e revigorante de banho tomado.', value: 'fresco', icon: 'ph-wind' },
-                        { text: 'Floral', desc: 'O encanto, a delicadeza e o poder de um belo buquê de flores.', value: 'floral', icon: 'ph-flower-tulip' },
-                        { text: 'Amadeirado', desc: 'A força, a intensidade e a imponência das madeiras nobres.', value: 'amadeirado', icon: 'ph-tree' }
+                        { text: 'Adocicado (Quente e marcante)', desc: 'Notas cremosas e suculentas que dão água na boca e envolvem todos os seus sentidos.', value: 'adocicado', icon: 'ph-cake' },
+                        { text: 'Fresco (Refrescante e limpo)', desc: 'O alívio gostoso de um banho recém-tomado. Aroma limpo, leve e super respirável.', value: 'fresco', icon: 'ph-wind' },
+                        { text: 'Flores (Romântico e intenso)', desc: 'A delicadeza apaixonante e o encanto de caminhar por um jardim exuberante.', value: 'floral', icon: 'ph-flower-tulip' },
+                        { text: 'Amadeirado (Rico e imponente)', desc: 'A força da natureza. Notas profundas, secas e que exalam uma presença inesquecível.', value: 'amadeirado', icon: 'ph-tree' }
                     ]
                 };
             } else if (index === 3) {
                 return {
-                    id: 'occasion',
-                    text: isMim ? 'Em quais momentos você usará mais essa fragrância?' : 'Em quais momentos esse perfume brilhará mais?',
+                    id: 'occasion', text: isMim ? 'Em quais momentos você usará mais essa fragrância?' : 'Em quais momentos esse perfume brilhará mais?',
                     options: [
-                        { text: 'Dia a Dia', desc: isMim ? 'Para me acompanhar com leveza e confiança na rotina.' : 'Para acompanhar com leveza e confiança no trabalho.', value: 'dia', icon: 'ph-sun' },
-                        { text: 'Noite / Encontros', desc: isMim ? 'Para criar aquele clima especial e deixar a pessoa hipnotizada.' : 'Para criar um clima inesquecível a dois.', value: 'noite', icon: 'ph-martini' },
-                        { text: 'Festas', desc: isMim ? 'Para chegar chamando a atenção e ser o destaque da noite.' : 'Para marcar presença e atrair todos os olhares na festa.', value: 'festa', icon: 'ph-confetti' },
-                        { text: 'Lazer / Academia', desc: 'Para os momentos de descontração, esportes e dias de sol.', value: 'lazer', icon: 'ph-sneaker' }
+                        { text: 'Trabalho e rotina do Dia a Dia', desc: 'Essências equilibradas para te trazer foco, conforto e muita autoconfiança na sua rotina.', value: 'dia', icon: 'ph-sun' },
+                        { text: 'Jantares, Encontros e à Noite', desc: 'Aromas intensos e provocantes, perfeitos para criar uma química e um clima a dois.', value: 'noite', icon: 'ph-martini' },
+                        { text: 'Eventos e Festas Especiais', desc: 'Fragrâncias de alta projeção para você marcar presença e ser o grande destaque da noite.', value: 'festa', icon: 'ph-confetti' },
+                        { text: 'Lazer ou Esportes/Academia', desc: 'Uma explosão de frescor e energia que acompanha perfeitamente o seu movimento e suor.', value: 'lazer', icon: 'ph-sneaker' }
                     ]
                 };
             }
@@ -393,14 +389,13 @@
             
             question.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                // Estilo ajustado para suportar o subtítulo (desc) perfeitamente
-                btn.className = 'option-btn group flex flex-col items-center justify-center p-4 md:p-6 border-2 border-gray-100 rounded-2xl bg-white text-gray-800 w-full h-full fade-in';
+                btn.className = 'option-btn group flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-100 rounded-2xl bg-white text-gray-800 w-full h-full fade-in';
                 btn.style.animationDelay = `${idx * 0.1}s`;
-                btn.innerHTML = `
-                    <i class="ph ${opt.icon} text-4xl mb-3 text-hinode-roxo transition-transform group-hover:scale-110"></i>
-                    <span class="font-bold text-center leading-tight tracking-wide mb-1.5 text-sm md:text-base">${opt.text}</span>
-                    <span class="text-[11px] md:text-xs text-gray-500 text-center px-1 leading-snug font-medium">${opt.desc}</span>
-                `;
+                
+                // Aqui renderizamos o Título + Descrição Sensorial
+                let descHtml = opt.desc ? `<span class="text-[12px] text-gray-500 text-center mt-2 px-1 leading-snug font-medium opacity-90">${opt.desc}</span>` : '';
+                btn.innerHTML = `<i class="ph ${opt.icon} text-4xl mb-3 text-hinode-roxo transition-transform group-hover:scale-110"></i><span class="font-bold text-sm md:text-base text-center text-hinode-roxo leading-tight tracking-wide">${opt.text}</span>${descHtml}`;
+                
                 btn.onclick = () => handleAnswer(opt.value); opts.appendChild(btn);
             });
         }
