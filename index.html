@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hinode - O Match Perfeito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hinode: { roxo: '#4C1D95', roxoLight: '#6D28D9', amarelo: '#EAB308', fundo: '#F8FAFC' }
+                    },
+                    fontFamily: { heading: ['Montserrat', 'sans-serif'], sans: ['Poppins', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: theme('colors.hinode.fundo'); min-height: 100vh; scroll-behavior: smooth; }
+        h1, h2, h3, .font-heading { font-family: 'Montserrat', sans-serif; }
+        .glass-card { background: #ffffff; border-radius: 24px; box-shadow: 0 10px 40px rgba(76, 29, 149, 0.08); border: 1px solid rgba(76, 29, 149, 0.05); }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .slide-up { animation: slideUp 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .option-btn { transition: all 0.2s ease-in-out; }
+        .option-btn:hover, .option-btn:focus { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(234, 179, 8, 0.15); border-color: theme('colors.hinode.amarelo'); background-color: #FEFCE8; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased flex flex-col items-center justify-center p-4 relative">
+
+    <div id="global-loader" class="hidden fixed inset-0 bg-hinode-roxo/95 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <i class="ph ph-spinner-gap animate-spin text-6xl text-hinode-amarelo mb-4"></i>
+        <h2 id="global-loader-text" class="text-2xl font-bold text-white font-heading text-center">Carregando...</h2>
+    </div>
+
+    <div id="custom-modal" class="hidden fixed inset-0 bg-hinode-roxo/90 z-[200] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300" id="custom-modal-content">
+            <div id="custom-modal-icon" class="mb-4 text-center"></div>
+            <h3 id="custom-modal-title" class="text-xl font-bold text-hinode-roxo mb-2 text-center font-heading">Título</h3>
+            <p id="custom-modal-message" class="text-gray-600 text-sm text-center mb-6">Mensagem do alerta.</p>
+            <div id="custom-modal-actions" class="flex gap-3 justify-center"></div>
+        </div>
+    </div>
+
+    <div id="quiz-app" class="w-full max-w-2xl">
+        <div class="glass-card w-full p-6 md:p-10 relative overflow-hidden slide-up">
+            
+            <div id="start-screen" class="text-center">
+                <div class="flex justify-center mb-6">
+                    <div class="bg-hinode-roxo p-4 rounded-full shadow-lg">
+                        <i class="ph ph-drop text-5xl text-hinode-amarelo"></i>
+                    </div>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-4 text-hinode-roxo font-heading tracking-tight uppercase">Mapa Olfativo</h2>
+                <p class="text-gray-600 mb-8 text-lg font-medium leading-relaxed">
+                    Já imaginou encontrar o perfume que traduz perfeitamente quem você é? Responda a 4 perguntinhas rápidas e deixe nosso algoritmo revelar a fragrância que vai se tornar a sua marca registrada!
+                </p>
+                <button id="btn-start" disabled class="bg-gray-300 text-gray-500 px-8 py-4 rounded-full font-bold text-lg w-full md:w-auto cursor-not-allowed flex justify-center items-center mx-auto transition-all">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Carregando banco de dados...
+                </button>
+            </div>
+
+            <div id="quiz-screen" class="hidden">
+                <div class="flex items-center mb-8">
+                    <button onclick="goBack()" class="flex-shrink-0 text-gray-400 hover:text-hinode-roxo transition-colors p-2 bg-gray-50 hover:bg-gray-100 rounded-full">
+                        <i class="ph ph-arrow-left text-2xl"></i>
+                    </button>
+                    <div class="w-full bg-gray-100 rounded-full h-2 ml-4">
+                        <div id="progress-bar" class="bg-hinode-amarelo h-2 rounded-full transition-all duration-500 ease-out shadow-sm" style="width: 0%"></div>
+                    </div>
+                </div>
+                <h2 id="question-text" class="text-2xl md:text-3xl font-extrabold mb-8 text-center text-hinode-roxo font-heading fade-in tracking-tight">Pergunta aqui</h2>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div id="result-screen" class="hidden text-center slide-up">
+                <div id="badge-match" class="inline-block bg-hinode-amarelo text-hinode-roxo px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">Seu Match Perfeito</div>
+                
+                <div class="flex justify-center mb-6">
+                    <div class="w-48 h-48 md:w-56 md:h-56 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-purple-50 flex items-center justify-center relative transition-transform hover:scale-105">
+                        <img id="result-img-top1" src="" alt="Perfume" class="w-full h-full object-cover hidden">
+                        <i id="result-icon-top1" class="ph ph-drop text-6xl text-hinode-roxo opacity-30"></i>
+                    </div>
+                </div>
+
+                <h2 id="result-title" class="text-4xl md:text-5xl font-extrabold mb-2 text-hinode-roxo transition-all duration-300 font-heading tracking-tight uppercase">Nome do Perfume</h2>
+                <p id="result-family" class="text-hinode-roxoLight font-bold mb-6 transition-all duration-300">Família Olfativa</p>
+                
+                <div class="bg-purple-50 rounded-2xl p-6 md:p-8 mb-8 border border-purple-100 shadow-inner text-left transition-all duration-300 relative overflow-hidden">
+                    <p id="result-desc" class="text-gray-700 leading-relaxed text-sm md:text-base relative z-10"></p>
+                </div>
+
+                <div class="text-left mb-6 border-t border-gray-100 pt-8">
+                    <p id="alt-title-text" class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5 transition-all text-center">Outras opções do catálogo pra você:</p>
+                    <div class="flex flex-col gap-3">
+                        <div class="bg-white p-3 rounded-2xl border border-gray-100 flex items-center shadow-sm transition-all duration-300 hover:border-hinode-amarelo">
+                            <div class="bg-purple-50 w-14 h-14 rounded-xl mr-4 shrink-0 flex items-center justify-center overflow-hidden border border-purple-100">
+                                <img id="alt1-img" src="" class="w-full h-full object-cover hidden">
+                                <i id="alt1-icon" class="ph ph-star text-hinode-roxo opacity-40 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h4 id="alt1-title" class="font-bold text-hinode-roxo text-lg font-heading leading-tight">Perfume 2</h4>
+                                <p id="alt1-desc" class="text-xs text-gray-500 mt-1">Família olfativa</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-2xl border border-gray-100 flex items-center shadow-sm transition-all duration-300 hover:border-hinode-amarelo">
+                            <div class="bg-purple-50 w-14 h-14 rounded-xl mr-4 shrink-0 flex items-center justify-center overflow-hidden border border-purple-100">
+                                <img id="alt2-img" src="" class="w-full h-full object-cover hidden">
+                                <i id="alt2-icon" class="ph ph-fire text-hinode-roxo opacity-40 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h4 id="alt2-title" class="font-bold text-hinode-roxo text-lg font-heading leading-tight">Perfume 3</h4>
+                                <p id="alt2-desc" class="text-xs text-gray-500 mt-1">Família olfativa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-10 text-center" id="container-btn-alternativo">
+                    <button onclick="showAlternativeMatch()" class="text-sm font-semibold text-gray-500 hover:text-hinode-roxo transition flex items-center justify-center mx-auto border border-gray-200 rounded-full px-5 py-2.5 hover:bg-purple-50 hover:border-purple-200">
+                        <i class="ph ph-shuffle text-lg mr-2 text-hinode-roxoLight"></i> Já conheço esses! Quero outras opções.
+                    </button>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button id="whatsapp-btn" onclick="shareToWhatsApp()" class="bg-[#25D366] text-white px-8 py-4 rounded-full font-bold hover:bg-[#128C7E] transition shadow-lg hover:shadow-xl flex items-center justify-center text-lg animate-pulse w-full md:w-auto">
+                        <i class="ph ph-whatsapp text-2xl mr-2"></i> Pedir o meu agora!
+                    </button>
+                    <button onclick="refazerQuiz()" class="border-2 border-gray-200 text-gray-600 px-6 py-4 rounded-full font-bold hover:bg-gray-50 transition flex items-center justify-center w-full md:w-auto">
+                        <i class="ph ph-arrows-clockwise text-xl mr-2 text-hinode-roxo"></i> Refazer teste
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE CAPTURA DE LEAD -->
+    <div id="lead-modal" class="hidden fixed inset-0 bg-hinode-roxo/95 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl slide-up relative">
+            <button onclick="closeLeadModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="ph ph-x text-2xl"></i></button>
+            <div class="text-center mb-6">
+                <div class="inline-block bg-purple-100 p-3 rounded-full mb-3"><i class="ph ph-sparkle text-3xl text-hinode-roxo"></i></div>
+                <h2 class="text-2xl font-bold text-hinode-roxo font-heading">Quase lá!</h2>
+                <p class="text-gray-500 text-sm mt-1">Preencha rapidinho para começarmos a criar o seu Mapa Olfativo.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Seu Nome</label>
+                    <input type="text" id="lead-nome" placeholder="Como gosta de ser chamado?" class="w-full border-2 border-gray-100 rounded-xl p-3 outline-none focus:border-hinode-roxo transition">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Cidade</label>
+                        <input type="text" id="lead-cidade" placeholder="Sua cidade" class="w-full border-2 border-gray-100 rounded-xl p-3 outline-none focus:border-hinode-roxo transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Estado</label>
+                        <select id="lead-estado" class="w-full border-2 border-gray-100 rounded-xl p-3 outline-none focus:border-hinode-roxo transition bg-white">
+                            <option value="">UF</option><option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">WhatsApp</label>
+                    <input type="tel" id="lead-telefone" placeholder="(00) 00000-0000" oninput="maskPhone(this)" maxlength="15" class="w-full border-2 border-gray-100 rounded-xl p-3 outline-none focus:border-hinode-roxo transition">
+                </div>
+            </div>
+            <button onclick="submitLeadAndStart()" class="w-full bg-hinode-amarelo text-hinode-roxo font-extrabold py-4 rounded-xl hover:brightness-105 transition shadow-lg mt-6 flex justify-center items-center">
+                Descobrir meu perfume <i class="ph ph-arrow-right ml-2 text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- FIREBASE E LÓGICA DO QUIZ -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        // Somente Firestore para o Quiz (sem Auth)
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_4etjKVWydjBh-0adQMhc5LJ9jfgL23g",
+            authDomain: "quiz-aura.firebaseapp.com",
+            projectId: "quiz-aura",
+            storageBucket: "quiz-aura.firebasestorage.app",
+            messagingSenderId: "871378366178",
+            appId: "1:871378366178:web:18886b1b96e4d4164938bb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let dbProducts = []; 
+        let storeConfig = { 
+            storeName: "Consultor Hinode", 
+            whatsapp: "", 
+            messageTemplate: "Oii *{loja}*! ✨ Aqui é o(a) *{nome}*, falo de *{cidade}-{estado}*.\n\nAcabei de fazer o Mapa Olfativo e descobri que o *{top1}* é o perfume PERFEITO *{presente}*! 😍\n\nJá quero garantir o meu! Vocês têm a pronta entrega pra me enviar? 🛍️\n\nMeu contato: {telefone}"
+        };
+
+        let fullRanking = [];
+        let showingAlternative = false;
+        let quizContext = { target: 'mim', pronoun: 'sua', subject: 'você' };
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let isQuizActive = false; 
+        
+        let leadData = { nome: "", cidade: "", estado: "", telefone: "", clicouWhatsApp: false, refazerCount: 0 };
+        let currentFinalMsg = "";
+
+        // UI Helpers
+        window.showModal = ({ title, message, type = 'info', confirmText = 'Entendi', cancelText = null, onConfirm = null }) => {
+            const modal = document.getElementById('custom-modal');
+            const iconEl = document.getElementById('custom-modal-icon');
+            const actionsEl = document.getElementById('custom-modal-actions');
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-message').innerText = message;
+
+            if (type === 'error') iconEl.innerHTML = '<i class="ph ph-warning-circle text-6xl text-red-500"></i>';
+            else if (type === 'warning') iconEl.innerHTML = '<i class="ph ph-warning text-6xl text-yellow-500"></i>';
+            else if (type === 'success') iconEl.innerHTML = '<i class="ph ph-check-circle text-6xl text-green-500"></i>';
+            else iconEl.innerHTML = '<i class="ph ph-info text-6xl text-hinode-roxoLight"></i>';
+
+            actionsEl.innerHTML = '';
+            if (cancelText) {
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition';
+                btnCancel.innerText = cancelText;
+                btnCancel.onclick = () => modal.classList.add('hidden');
+                actionsEl.appendChild(btnCancel);
+            }
+            const btnConfirm = document.createElement('button');
+            const btnClass = (type === 'error' || type === 'warning') && cancelText ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-hinode-amarelo hover:brightness-105 text-hinode-roxo';
+            btnConfirm.className = `flex-1 font-bold py-3 rounded-xl transition shadow-md ${btnClass}`;
+            btnConfirm.innerText = confirmText;
+            btnConfirm.onclick = () => { modal.classList.add('hidden'); if (onConfirm) onConfirm(); };
+            actionsEl.appendChild(btnConfirm);
+
+            modal.classList.remove('hidden');
+            setTimeout(() => document.getElementById('custom-modal-content').classList.remove('scale-95'), 10);
+        };
+
+        window.scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.showLoader = (text) => { document.getElementById('global-loader-text').innerText = text; document.getElementById('global-loader').classList.remove('hidden'); };
+        window.hideLoader = () => document.getElementById('global-loader').classList.add('hidden');
+        window.maskPhone = (input) => {
+            let val = input.value.replace(/\D/g, '');
+            if(val.length > 11) val = val.slice(0,11);
+            if(val.length > 2) val = `(${val.slice(0,2)}) ${val.slice(2)}`;
+            if(val.length > 10) val = `${val.slice(0,10)}-${val.slice(10)}`;
+            input.value = val;
+        }
+
+        window.addEventListener('beforeunload', function (e) {
+            if (isQuizActive) { e.preventDefault(); e.returnValue = ''; }
+        });
+
+        // CRM Save
+        async function saveLeadToCRM() {
+            if (!leadData.telefone) return; 
+            const now = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+            const leadDocData = {
+                nome: leadData.nome, cidade: leadData.cidade, estado: leadData.estado, telefone: leadData.telefone,
+                respostas: [...userAnswers],
+                resultadoPrincipal: { top1: fullRanking[0]?.name || "", top2: fullRanking[1]?.name || "", top3: fullRanking[2]?.name || "" },
+                resultadoAlternativo: showingAlternative ? { top1: (fullRanking[3] || fullRanking[2])?.name || "", top2: (fullRanking[4] || fullRanking[1])?.name || "", top3: (fullRanking[5] || fullRanking[0])?.name || "" } : null,
+                clicouWhatsApp: leadData.clicouWhatsApp, clicouAlternativas: showingAlternative,
+                refazerCount: leadData.refazerCount, ultimaAtualizacao: now
+            };
+
+            try {
+                const q = query(collection(db, "crm_leads"), where("telefone", "==", leadData.telefone));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    await updateDoc(doc(db, "crm_leads", snap.docs[0].id), leadDocData);
+                } else {
+                    leadDocData.createdAt = now;
+                    await addDoc(collection(db, "crm_leads"), leadDocData);
+                }
+            } catch(e) { console.error("Erro ao salvar lead", e); }
+        }
+
+        // Quiz Logic
+        window.openLeadModal = () => {
+            if(dbProducts.length === 0) { showModal({ title: 'Aguarde', message: 'O catálogo está sendo carregado.', type: 'warning' }); return; }
+            if (leadData.telefone) { startQuiz(); return; }
+            document.getElementById('lead-modal').classList.remove('hidden');
+        }
+
+        window.closeLeadModal = () => document.getElementById('lead-modal').classList.add('hidden');
+
+        window.submitLeadAndStart = () => {
+            const nome = document.getElementById('lead-nome').value.trim();
+            const cidade = document.getElementById('lead-cidade').value.trim();
+            const estado = document.getElementById('lead-estado').value;
+            const telefone = document.getElementById('lead-telefone').value.trim();
+
+            if (!nome || !cidade || !estado || telefone.length < 14) {
+                showModal({ title: 'Ops!', message: 'Preencha todos os campos pra gente te conhecer melhor! 😉', type: 'warning' }); return;
+            }
+
+            leadData = { nome, cidade, estado, telefone, clicouWhatsApp: false, refazerCount: 0 };
+            closeLeadModal(); startQuiz();
+        }
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden'); document.getElementById('result-screen').classList.add('hidden'); document.getElementById('quiz-screen').classList.remove('hidden');
+            currentQuestionIndex = 0; userAnswers = []; showingAlternative = false; isQuizActive = true; 
+            document.getElementById('container-btn-alternativo').classList.remove('hidden');
+            document.getElementById('badge-match').innerText = "Seu Match Perfeito";
+            document.getElementById('alt-title-text').innerText = "Outras opções do catálogo pra você:";
+            showQuestion(); window.scrollToTop();
+        }
+
+        window.refazerQuiz = async () => { leadData.refazerCount++; await saveLeadToCRM(); startQuiz(); }
+
+        window.goBack = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--; userAnswers.pop(); 
+                if (currentQuestionIndex === 0) quizContext = { target: 'mim', pronoun: 'sua', subject: 'você' };
+                showQuestion(); window.scrollToTop();
+            } else {
+                isQuizActive = false; document.getElementById('quiz-screen').classList.add('hidden'); document.getElementById('start-screen').classList.remove('hidden'); window.scrollToTop();
+            }
+        };
+
+        function getDynamicQuestion(index) {
+            if (index === 0) return { text: 'Para quem estamos buscando a fragrância ideal hoje?', options: [{ text: 'Para mim (Feminino)', value: 'mim_feminino', icon: 'ph-person' }, { text: 'Para mim (Masculino)', value: 'mim_masculino', icon: 'ph-person' }, { text: 'Presentear (Feminino)', value: 'presente_feminino', icon: 'ph-gift' }, { text: 'Presentear (Masculino)', value: 'presente_masculino', icon: 'ph-gift' }] };
+            if (index === 1) return { text: quizContext.target === 'mim' ? 'Qual essência combina mais com o que você deseja transmitir?' : `Qual energia e vibe combina mais com a personalidade ${quizContext.pronoun}?`, options: [{ text: 'Elegância & Poder', value: 'elegante', icon: 'ph-crown' }, { text: 'Sedução & Mistério', value: 'sedutor', icon: 'ph-fire' }, { text: 'Vibração & Energia', value: 'vibrante', icon: 'ph-lightning' }, { text: 'Conforto & Bem-estar', value: 'confortavel', icon: 'ph-leaf' }] };
+            if (index === 2) return { text: quizContext.target === 'mim' ? 'E que tipo de notas olfativas são mais a sua cara?' : `Qual tipo de notas olfativas costuma ganhar o coração ${quizContext.pronoun}?`, options: [{ text: 'Adocicado', value: 'adocicado', icon: 'ph-cake' }, { text: 'Fresco', value: 'fresco', icon: 'ph-wind' }, { text: 'Flores', value: 'floral', icon: 'ph-flower-tulip' }, { text: 'Amadeirado', value: 'amadeirado', icon: 'ph-tree' }] };
+            if (index === 3) return { text: quizContext.target === 'mim' ? 'Em quais momentos você usará mais essa fragrância?' : 'Em quais momentos esse perfume brilhará mais?', options: [{ text: 'Dia a Dia', value: 'dia', icon: 'ph-sun' }, { text: 'Noite / Encontros', value: 'noite', icon: 'ph-martini' }, { text: 'Festas', value: 'festa', icon: 'ph-confetti' }, { text: 'Lazer / Academia', value: 'lazer', icon: 'ph-sneaker' }] };
+        }
+
+        function showQuestion() {
+            const question = getDynamicQuestion(currentQuestionIndex);
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / 4) * 100}%`;
+            const qText = document.getElementById('question-text');
+            qText.classList.remove('fade-in'); void qText.offsetWidth; qText.classList.add('fade-in'); qText.innerText = question.text;
+            const opts = document.getElementById('options-container'); opts.innerHTML = '';
+            question.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-2xl bg-white text-gray-800 w-full h-full fade-in';
+                btn.style.animationDelay = `${idx * 0.1}s`;
+                btn.innerHTML = `<i class="ph ${opt.icon} text-5xl mb-4 text-hinode-roxo"></i><span class="font-bold text-center leading-tight tracking-wide">${opt.text}</span>`;
+                btn.onclick = () => handleAnswer(opt.value); opts.appendChild(btn);
+            });
+        }
+
+        window.handleAnswer = (value) => {
+            if (currentQuestionIndex === 0) {
+                let parts = value.split('_'); quizContext.target = parts[0]; quizContext.pronoun = parts[1] === 'feminino' ? 'dela' : 'dele'; userAnswers.push(parts[1]); 
+            } else { userAnswers.push(value); }
+            if (currentQuestionIndex < 3) { currentQuestionIndex++; showQuestion(); window.scrollToTop(); } 
+            else { document.getElementById('progress-bar').style.width = '100%'; setTimeout(() => { calculateMatch(); window.scrollToTop(); }, 400); }
+        }
+
+        function calculateMatch() {
+            isQuizActive = false; 
+            fullRanking = dbProducts.map(p => {
+                let score = 0;
+                if (p.tags && p.tags.includes(userAnswers[0])) score += 15;
+                if (p.tags && p.tags.includes(userAnswers[1])) score += 3;
+                if (p.tags && p.tags.includes(userAnswers[2])) score += 5;
+                if (p.tags && p.tags.includes(userAnswers[3])) score += 1;
+                return { ...p, finalScore: score + (Math.random() * 0.9) }; 
+            }).sort((a, b) => b.finalScore - a.finalScore);
+
+            renderResultsView(fullRanking[0], fullRanking[1], fullRanking[2]);
+            document.getElementById('quiz-screen').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden');
+            saveLeadToCRM();
+        }
+
+        window.showAlternativeMatch = async () => {
+            showingAlternative = true;
+            document.getElementById('result-title').style.opacity = 0; document.getElementById('result-family').style.opacity = 0;
+            setTimeout(() => {
+                document.getElementById('badge-match').innerText = "Novas Opções!"; document.getElementById('alt-title-text').innerText = "Mais opções parecidas com seu gosto:";
+                renderResultsView(fullRanking[3] || fullRanking[2], fullRanking[4] || fullRanking[1], fullRanking[5] || fullRanking[0]);
+                document.getElementById('container-btn-alternativo').classList.add('hidden');
+                document.getElementById('result-title').style.opacity = 1; document.getElementById('result-family').style.opacity = 1; window.scrollToTop();
+                saveLeadToCRM();
+            }, 300);
+        }
+
+        function updateResultImage(product, imgId, iconId) {
+            const imgEl = document.getElementById(imgId), iconEl = document.getElementById(iconId);
+            if (product && product.image) { imgEl.src = product.image; imgEl.classList.remove('hidden'); iconEl.classList.add('hidden'); } 
+            else { imgEl.src = ''; imgEl.classList.add('hidden'); iconEl.classList.remove('hidden'); }
+        }
+
+        function renderResultsView(top1, top2, top3) {
+            document.getElementById('result-title').innerText = top1.name; document.getElementById('result-family').innerText = top1.family;
+            updateResultImage(top1, 'result-img-top1', 'result-icon-top1'); updateResultImage(top2, 'alt1-img', 'alt1-icon'); updateResultImage(top3, 'alt2-img', 'alt2-icon');
+            
+            document.getElementById('result-desc').innerHTML = showingAlternative 
+                ? `<span class="font-bold text-hinode-roxo block mb-2 font-heading text-lg">Saindo do óbvio!</span>Essa indicação também tem a sua cara, trazendo notas incríveis de <span class="italic text-hinode-amarelo font-bold">${top1.notes}</span>`
+                : `<span class="font-bold text-hinode-roxo block mb-2 font-heading text-lg">A conexão perfeita!</span>Com base no mapa olfativo, nossa indicação principal traz notas exclusivas de <span class="italic text-hinode-amarelo font-bold">${top1.notes}</span>`;
+            
+            document.getElementById('alt1-title').innerText = top2.name; document.getElementById('alt1-desc').innerText = top2.family;
+            document.getElementById('alt2-title').innerText = top3.name; document.getElementById('alt2-desc').innerText = top3.family;
+
+            let textoPresente = quizContext.target === 'mim' ? "pra mim" : "para eu dar de presente";
+            currentFinalMsg = storeConfig.messageTemplate
+                .replace(/{loja}/g, storeConfig.storeName).replace(/{nome}/g, leadData.nome).replace(/{cidade}/g, leadData.cidade).replace(/{estado}/g, leadData.estado)
+                .replace(/{telefone}/g, leadData.telefone).replace(/{presente}/g, textoPresente)
+                .replace(/{top1}/g, top1.name).replace(/{top2}/g, top2.name).replace(/{top3}/g, top3.name);
+        }
+
+        window.shareToWhatsApp = async () => {
+            const btn = document.getElementById('whatsapp-btn'); const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="ph ph-spinner animate-spin text-2xl mr-2"></i> Abrindo...';
+            leadData.clicouWhatsApp = true; await saveLeadToCRM();
+            let wppNumber = storeConfig.whatsapp.replace(/\D/g, '');
+            if(wppNumber.length >= 10 && !wppNumber.startsWith('55')) wppNumber = '55' + wppNumber;
+            window.open(`https://wa.me/${wppNumber}?text=${encodeURIComponent(currentFinalMsg)}`, '_blank');
+            btn.innerHTML = originalHTML;
+        }
+
+        async function loadInitialData() {
+            try {
+                const configSnap = await getDoc(doc(db, "settings", "storeProfile"));
+                if (configSnap.exists()) storeConfig = { ...storeConfig, ...configSnap.data() };
+
+                let querySnapshot = await getDocs(query(collection(db, "products"), where("isActive", "==", true)));
+                if (querySnapshot.empty) {
+                    const btn = document.getElementById('btn-start');
+                    btn.innerHTML = `Catálogo Vazio`; return;
+                }
+
+                querySnapshot.forEach((doc) => dbProducts.push({ id: doc.id, ...doc.data() }));
+
+                const btnStart = document.getElementById('btn-start');
+                btnStart.disabled = false;
+                btnStart.className = "bg-hinode-amarelo text-hinode-roxo px-10 py-4 rounded-full font-extrabold text-lg w-full md:w-auto hover:brightness-105 transition-all shadow-md hover:shadow-lg flex justify-center items-center mx-auto transform hover:-translate-y-1";
+                btnStart.innerHTML = `Iniciar a Descoberta <i class="ph ph-sparkle align-middle ml-2 text-xl"></i>`;
+                btnStart.onclick = openLeadModal;
+            } catch (error) { console.error("Erro:", error); }
+        }
+        loadInitialData();
+    </script>
+</body>
+</html>
