@@ -35,9 +35,6 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .option-btn { transition: all 0.2s ease-in-out; }
         .option-btn:hover, .option-btn:focus { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(234, 179, 8, 0.15); border-color: theme('colors.hinode.amarelo'); background-color: #FEFCE8; }
-        
-        /* Estilo especial para a porcentagem */
-        .match-percent-badge { background: linear-gradient(135deg, #EAB308, #F59E0B); color: #4C1D95; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 800; font-size: 0.75rem; margin-left: 0.5rem; box-shadow: 0 2px 4px rgba(234, 179, 8, 0.3); }
     </style>
 </head>
 <body class="text-gray-800 antialiased flex flex-col items-center justify-center p-4 relative">
@@ -90,12 +87,11 @@
 
             <div id="result-screen" class="hidden text-center slide-up">
                 
-                <!-- Badge com o Match e a Porcentagem -->
+                <!-- Badge com o Match -->
                 <div class="flex items-center justify-center mb-6">
-                    <div id="badge-container" class="inline-flex items-center bg-purple-50 border border-purple-100 text-hinode-roxo px-5 py-2 rounded-full shadow-sm transition-all">
+                    <div id="badge-container" class="inline-flex items-center bg-purple-50 border border-purple-100 text-hinode-roxo px-6 py-2 rounded-full shadow-sm transition-all">
                         <i class="ph ph-target text-lg mr-2"></i>
                         <span id="badge-match" class="text-xs font-bold uppercase tracking-widest">Seu Match Perfeito</span>
-                        <span id="match-percent" class="match-percent-badge">95%</span>
                     </div>
                 </div>
                 
@@ -308,7 +304,7 @@
             
             // Restaura o badge principal
             document.getElementById('badge-match').innerText = "Seu Match Perfeito";
-            document.getElementById('badge-container').className = "inline-flex items-center bg-purple-50 border border-purple-100 text-hinode-roxo px-5 py-2 rounded-full shadow-sm transition-all";
+            document.getElementById('badge-container').className = "inline-flex items-center bg-purple-50 border border-purple-100 text-hinode-roxo px-6 py-2 rounded-full shadow-sm transition-all";
             
             showQuestion(); window.scrollToTop();
         }
@@ -360,7 +356,6 @@
                     ]
                 };
             } else if (index === 3) {
-                // A pergunta 3 agora é diretamente a Ocasião
                 return {
                     id: 'occasion', text: isMim ? 'Em quais momentos você usará mais essa fragrância?' : 'Em quais momentos esse perfume brilhará mais?',
                     options: [
@@ -376,7 +371,7 @@
         function showQuestion() {
             const question = getDynamicQuestion(currentQuestionIndex);
             
-            // Calculo da barra de progresso (dividido por 4 agora)
+            // Calculo da barra de progresso
             document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / 4) * 100}%`;
             
             const qText = document.getElementById('question-text');
@@ -400,58 +395,61 @@
                 let parts = value.split('_'); quizContext.target = parts[0]; quizContext.pronoun = parts[1] === 'feminino' ? 'dela' : 'dele'; userAnswers.push(parts[1]); 
             } else { userAnswers.push(value); }
             
-            // Agora vai até o índice 3 (4 perguntas no total)
             if (currentQuestionIndex < 3) { currentQuestionIndex++; showQuestion(); window.scrollToTop(); } 
             else { document.getElementById('progress-bar').style.width = '100%'; setTimeout(() => { calculateMatch(); window.scrollToTop(); }, 400); }
         }
 
-        // ====== A LÓGICA DE PONTUAÇÃO COM DESEMPATE ALEATÓRIO (SEM INTENSIDADE) ======
+        // ====== LÓGICA DE CORTE, PONTUAÇÃO E DESEMPATE DECIMAL ALEATÓRIO ======
         function calculateMatch() {
             isQuizActive = false; 
 
-            // Respostas do cliente (agora são apenas 4)
-            const targetGender = userAnswers[0]; // Filtro absoluto
-            const vibe = userAnswers[1];         // Peso 5
-            const family = userAnswers[2];       // Peso 10 (Mais importante)
-            const occasion = userAnswers[3];     // Peso 5
+            // Respostas do cliente
+            const targetGender = userAnswers[0]; // Filtro Absoluto
+            const vibe = userAnswers[1];         // Peso 6
+            const family = userAnswers[2];       // Filtro Absoluto (Peso 10 na contagem total)
+            const occasion = userAnswers[3];     // Peso 8
 
-            // A pontuação máxima agora é 20 (10 da família + 5 da vibe + 5 da ocasião)
-            const MAX_SCORE = 20; 
+            // 1. FILTRO DE CORTE ABSOLUTO (A Peneira Grossa)
+            // Traz apenas perfumes do Gênero e Família Olfativa exatos.
+            let produtosFiltrados = dbProducts.filter(p => 
+                p.tags && 
+                p.tags.includes(targetGender) && 
+                p.tags.includes(family)
+            );
 
-            // 1. Filtro Obrigatório de Gênero
-            let produtosDoGenero = dbProducts.filter(p => p.tags && p.tags.includes(targetGender));
-            if (produtosDoGenero.length === 0) produtosDoGenero = dbProducts;
+            // Fallback de segurança: se não achar a família pedida, ignora a família e traz só do gênero
+            if (produtosFiltrados.length === 0) {
+                produtosFiltrados = dbProducts.filter(p => p.tags && p.tags.includes(targetGender));
+            }
+            if (produtosFiltrados.length === 0) produtosFiltrados = dbProducts;
 
-            // 2. Cálculo da Pontuação (Scoring) e Geração do Fator de Desempate
-            fullRanking = produtosDoGenero.map(p => {
+
+            // 2. CÁLCULO DA PONTUAÇÃO (SCORING) E GERADOR DE DESEMPATE
+            fullRanking = produtosFiltrados.map(p => {
                 let score = 0;
                 
-                // Distribuição dos pesos
+                // Pontua os atributos
                 if (p.tags && p.tags.includes(family)) score += 10;
-                if (p.tags && p.tags.includes(vibe)) score += 5;
-                if (p.tags && p.tags.includes(occasion)) score += 5;
-
-                let matchPercentage = Math.round((score / MAX_SCORE) * 100);
+                if (p.tags && p.tags.includes(occasion)) score += 8;
+                if (p.tags && p.tags.includes(vibe)) score += 6;
                 
-                // O SEGREDO DO DESEMPATE ALEATÓRIO:
-                // Criamos um "número da sorte" exclusivo para cada perfume nesta rodada.
-                let randomTieBreaker = Math.random(); 
+                // GERADOR DE DESEMPATE ALEATÓRIO
+                // Math.random() cria um decimal como 0.81234, 0.45521...
+                let fatorDesempate = Math.random(); 
 
                 return { 
                     ...p, 
                     baseScore: score, 
-                    randomTieBreaker: randomTieBreaker,
-                    matchPercentage: matchPercentage 
+                    fatorDesempate: fatorDesempate
                 }; 
 
             }).sort((a, b) => {
-                // Se as pontuações base forem EXACTAMENTE iguais (Houve um empate)
+                // Se empataram na pontuação principal (ex: dois perfumes têm 18 pontos)
                 if (b.baseScore === a.baseScore) {
-                    // O algoritmo olha para o número da sorte (randomTieBreaker) para desempatar!
-                    return b.randomTieBreaker - a.randomTieBreaker;
+                    // O sistema usa o decimal aleatório para ver quem ganha o desempate
+                    return b.fatorDesempate - a.fatorDesempate;
                 }
-                
-                // Se as pontuações são diferentes, a maior nota vence normalmente
+                // Se não teve empate, quem tem a maior nota (baseScore) vence
                 return b.baseScore - a.baseScore;
             }); 
 
@@ -480,7 +478,7 @@
                 
                 setTimeout(() => {
                     document.getElementById('badge-match').innerText = "Ótima Alternativa";
-                    document.getElementById('badge-container').className = "inline-flex items-center bg-gray-50 border border-gray-200 text-gray-600 px-5 py-2 rounded-full shadow-sm transition-all";
+                    document.getElementById('badge-container').className = "inline-flex items-center bg-gray-50 border border-gray-200 text-gray-600 px-6 py-2 rounded-full shadow-sm transition-all";
                     
                     renderResultsView(fullRanking[currentShownIndex]);
                     
@@ -508,7 +506,6 @@
             
             document.getElementById('result-title').innerText = product.name; 
             document.getElementById('result-family').innerText = product.family || '';
-            document.getElementById('match-percent').innerText = `${product.matchPercentage}%`;
             
             updateResultImage(product, 'result-img-top1', 'result-icon-top1'); 
             
